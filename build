@@ -1,0 +1,42 @@
+#!/usr/bin/env python3
+import subprocess
+import sys
+
+CP_LATEST_VERSION = '7.0'
+CP_TO_KAFKA_VERSION = {
+    '5.5': ['2.5', 1],
+    '6.0': ['2.6', 3],
+    '6.1': ['2.7', 2],
+    '6.2': ['2.8', 1],
+    '7.0': ['3.0', 0],
+}
+
+def parse_version(v):
+    r = tuple(map(int, (v.split('.'))))
+    assert len(r) == 3, f'expected X.Y.Z version: {v}'
+    return r
+
+if len(sys.argv) < 2:
+    print('Usage: ./build <CP_VERSION>,<CP_VERSION>')
+    sys.exit(1)
+
+cp_version_strs = sys.argv[1:]
+for cp_version_str in cp_version_strs:
+    if cp_version_str == 'latest':
+        kafka_version = f'{CP_TO_KAFKA_VERSION[CP_LATEST_VERSION][0]}.{CP_TO_KAFKA_VERSION[CP_LATEST_VERSION][1]}'
+    else:
+        cp_version = parse_version(cp_version_str)
+        kafka_version = CP_TO_KAFKA_VERSION.get(f'{cp_version[0]}.{cp_version[1]}')
+        if kafka_version is None:
+            raise Exception(f'Unknown CP version: {cp_version_str}')
+        minor = min(cp_version[2], kafka_version[1])
+        kafka_version = f'{kafka_version[0]}.{minor}'
+
+    print(f'Building image with Kafka {kafka_version}')
+
+    assert subprocess.run([
+        'docker', 'build', '-t', 
+        f'confluentinc/cp-kafka:{cp_version_str}',
+        '--build-arg', f'KAFKA_VERSION={kafka_version}',
+        '.',
+    ]).returncode == 0

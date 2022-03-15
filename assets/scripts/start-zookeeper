@@ -1,2 +1,3 @@
 #!/bin/sh
+cp /zookeeper.properties $ZOOKEEPER_HOME/conf/zoo.cfg
 $ZOOKEEPER_HOME/bin/zkServer.sh start-foreground

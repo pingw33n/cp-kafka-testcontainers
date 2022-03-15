@@ -1,0 +1,22 @@
+#!/usr/bin/env python3
+import os
+import subprocess
+
+kafka_home = os.environ['KAFKA_HOME']
+conf_path = os.path.join(kafka_home, 'config/server.properties')
+
+os.remove(conf_path)
+
+conf_file = open(conf_path, 'a')
+
+env_var_prefix = 'KAFKA_'
+for n, v in os.environ.items():
+    if not n.startswith(env_var_prefix):
+        continue
+    assert not '\n' in v
+    n = n[len(env_var_prefix):].lower().replace('_', '.')
+    conf_file.write(f'{n}={v}\n')
+
+conf_file.close()
+
+subprocess.run([os.path.join(kafka_home, 'bin/kafka-server-start.sh'), conf_path])
