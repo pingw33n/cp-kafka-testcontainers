@@ -25,4 +25,10 @@ ADD assets/scripts/start-all /usr/bin/start-all
 ADD assets/supervisor/kafka.ini assets/supervisor/zookeeper.ini /etc/supervisor.d/
 
 RUN mkdir -p /etc/confluent/docker
+RUN echo '#/bin/sh' > /usr/local/bin/zookeeper-server-start
+RUN chmod +x /usr/local/bin/zookeeper-server-start
+RUN ln -s $KAFKA_HOME/bin/kafka-configs.sh $KAFKA_HOME/bin/kafka-configs
 RUN ln -s /usr/bin/start-all /etc/confluent/docker/launch
+RUN ln -s /usr/bin/start-all /etc/confluent/docker/run
+
+ENV PATH "$KAFKA_HOME/bin:$PATH"
